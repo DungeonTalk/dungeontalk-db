@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  mongo:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+
+  valkey-session:
+    image: valkey/valkey:latest
+    container_name: dgt-valkey-session
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./valkey/session.conf:/etc/valkey/valkey.conf
+    command: ["valkey-server", "/etc/valkey/valkey.conf"]
+
+  valkey-cache:
+    image: valkey/valkey:latest
+    container_name: dgt-valkey-cache
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./valkey/cache.conf:/etc/valkey/valkey.conf
+    command: ["valkey-server", "/etc/valkey/valkey.conf"]

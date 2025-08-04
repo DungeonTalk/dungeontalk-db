@@ -1,0 +1,10 @@
+## 사용법
+
+### SpringBoot의 application.properties에서 사용법
+
+valkey.session.host=localhost
+valkey.session.port=6379
+valkey.cache.host=localhost
+valkey.cache.port=6380
+
+

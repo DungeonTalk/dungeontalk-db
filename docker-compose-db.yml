@@ -10,6 +10,7 @@ services:
       POSTGRES_DB: dungeondb
     volumes:
       - ./postgres/data:/var/lib/postgresql/data
+      - ./postgres/init-vector.sql:/docker-entrypoint-initdb.d/init-vector.sql
 
   mongo:
     image: mongo:7.0
@@ -46,3 +47,29 @@ services:
       - ./valkey-cache/data:/data
       - "${VALKEY_CACHE_CONFIG_PATH}:/etc/valkey/valkey.conf"
     command: ["valkey-server", "/etc/valkey/valkey.conf"]
+
+  dungeontalk-ai:
+    build: ../dungeontalk-mvp
+    container_name: dgt-ai-service
+    ports:
+      - "8001:8001"
+    environment:
+      TZ: Asia/Seoul
+      AI_SERVICE_PORT: 8001
+      LLM_PROVIDER: ${LLM_PROVIDER}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      USE_REMOTE_EMBEDDINGS: ${USE_REMOTE_EMBEDDINGS}
+      OPENAI_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    depends_on:
+      - postgres
+    volumes:
+      - ../dungeontalk-mvp/documents:/app/documents
+      - ../dungeontalk-mvp/vectorstore_openai:/app/vectorstore_openai

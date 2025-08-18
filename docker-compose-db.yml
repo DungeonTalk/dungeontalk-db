@@ -2,7 +2,7 @@ services:
   postgres:
     image: pgvector/pgvector:pg17
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     environment:
       TZ: Asia/Seoul
       POSTGRES_USER: ${POSTGRES_USER}
@@ -57,10 +57,10 @@ services:
     build: ../dungeontalk-mvp
     container_name: dgt-ai-service
     ports:
-      - "8001:8001"
+      - "${AI_SERVICE_PORT}:8001"
     environment:
       TZ: Asia/Seoul
-      AI_SERVICE_PORT: 8001
+      AI_SERVICE_PORT: ${AI_SERVICE_PORT}
       LLM_PROVIDER: ${LLM_PROVIDER}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
@@ -69,7 +69,7 @@ services:
       USE_REMOTE_EMBEDDINGS: ${USE_REMOTE_EMBEDDINGS}
       OPENAI_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL}
       POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
+      POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}

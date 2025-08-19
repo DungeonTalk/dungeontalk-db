@@ -54,7 +54,7 @@ services:
     command: ["valkey-server", "/etc/valkey/valkey.conf"]
 
   dungeontalk-ai:
-    build: ../dungeontalk-mvp
+    build: ../python-ai-model
     container_name: dgt-ai-service
     ports:
       - "${AI_SERVICE_PORT}:8001"

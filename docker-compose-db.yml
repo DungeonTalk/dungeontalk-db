@@ -29,30 +29,6 @@ services:
       - ./mongo/data:/data/db
       - ./mongo/init.js:/docker-entrypoint-initdb.d/init.js
 
-  valkey-session:
-    image: valkey/valkey:latest
-    container_name: dgt-valkey-session
-    ports:
-      - "${VALKEY_SESSION_PORT}:6379"
-    environment:
-      TZ: Asia/Seoul
-    volumes:
-      - ./valkey-session/data:/data
-      - "${VALKEY_SESSION_CONFIG_PATH}:/etc/valkey/valkey.conf"
-    command: ["valkey-server", "/etc/valkey/valkey.conf"]
-
-  valkey-cache:
-    image: valkey/valkey:latest
-    container_name: dgt-valkey-cache
-    ports:
-      - "${VALKEY_CACHE_PORT}:6379"
-    environment:
-      TZ: Asia/Seoul
-    volumes:
-      - ./valkey-cache/data:/data
-      - "${VALKEY_CACHE_CONFIG_PATH}:/etc/valkey/valkey.conf"
-    command: ["valkey-server", "/etc/valkey/valkey.conf"]
-
   dungeontalk-ai:
     build: ../python-ai-model
     container_name: dgt-ai-service
@@ -79,3 +55,122 @@ services:
     volumes:
       - ../dungeontalk-mvp/documents:/app/documents
       - ../dungeontalk-mvp/vectorstore_openai:/app/vectorstore_openai
+
+  valkey-session-1:
+    image: valkey/valkey:latest
+    container_name: dgt-valkey-session-1
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./valkey-session/data:/data
+      - ./valkey-session/session.conf:/etc/valkey/valkey.conf
+    command: ["valkey-server", "/etc/valkey/valkey.conf"]
+    deploy:
+      resources:
+        limits:
+          memory: 100m
+
+  valkey-session-2:
+    image: valkey/valkey:latest
+    container_name: dgt-valkey-session-2
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./valkey-session/slave.conf:/etc/valkey/valkey.conf
+    command: ["valkey-server", "/etc/valkey/valkey.conf"]
+    depends_on:
+      - valkey-session-1
+    deploy:
+      resources:
+        limits:
+          memory: 100m
+
+  valkey-sentinel1:
+    image: valkey/valkey:latest
+    container_name: dgt-valkey-sentinel1
+    ports:
+      - "26379:26379"
+    volumes:
+      #- ./valkey-sentinel/sentinel1.conf:/etc/valkey/sentinel.conf
+      - ./valkey-sentinel/:/etc/valkey/
+    command: ["valkey-sentinel", "/etc/valkey/sentinel1.conf"]
+    depends_on:
+      - valkey-session-1
+      - valkey-session-2
+    deploy:
+      resources:
+        limits:
+          memory: 32m
+
+  valkey-sentinel2:
+    image: valkey/valkey:latest
+    container_name: dgt-valkey-sentinel2
+    ports:
+      - "26380:26380"
+    volumes:
+      #- ./valkey-sentinel/sentinel2.conf:/etc/valkey/sentinel.conf
+      - ./valkey-sentinel/:/etc/valkey/
+    command: ["valkey-sentinel", "/etc/valkey/sentinel2.conf"]
+    depends_on:
+      - valkey-session-1
+      - valkey-session-2
+    deploy:
+      resources:
+        limits:
+          memory: 32m
+
+  valkey-sentinel3:
+    image: valkey/valkey:latest
+    container_name: dgt-valkey-sentinel3
+    ports:
+      - "26381:26381"
+    volumes:
+      #- ./valkey-sentinel/sentinel3.conf:/etc/valkey/sentinel.conf
+      - ./valkey-sentinel/:/etc/valkey/
+    command: ["valkey-sentinel", "/etc/valkey/sentinel3.conf"]
+    depends_on:
+      - valkey-session-1
+      - valkey-session-2
+    deploy:
+      resources:
+        limits:
+          memory: 32m
+
+  valkey-cache:
+    image: valkey/valkey:latest
+    container_name: dgt-valkey-cache
+    ports:
+      - "6378:6379"
+    volumes:
+      - ./valkey-cache/data:/data
+      - ./valkey-cache/cache.conf:/etc/valkey/valkey.conf
+    command: ["valkey-server", "/etc/valkey/valkey.conf"]
+    deploy:
+      resources:
+        limits:
+          memory: 100m
+
+### DEPRECATED
+#  valkey-session:
+#    image: valkey/valkey:latest
+#    container_name: dgt-valkey-session
+#    ports:
+#      - "${VALKEY_SESSION_PORT}:6379"
+#    environment:
+#      TZ: Asia/Seoul
+#    volumes:
+#      - ./valkey-session/data:/data
+#      - "${VALKEY_SESSION_CONFIG_PATH}:/etc/valkey/valkey.conf"
+#    command: ["valkey-server", "/etc/valkey/valkey.conf"]
+#
+#  valkey-cache:
+#    image: valkey/valkey:latest
+#    container_name: dgt-valkey-cache
+#    ports:
+#      - "${VALKEY_CACHE_PORT}:6379"
+#    environment:
+#      TZ: Asia/Seoul
+#    volumes:
+#      - ./valkey-cache/data:/data
+#      - "${VALKEY_CACHE_CONFIG_PATH}:/etc/valkey/valkey.conf"
+#    command: ["valkey-server", "/etc/valkey/valkey.conf"]
